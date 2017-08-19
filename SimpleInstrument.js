@@ -84,7 +84,7 @@ class SimpleInstrument extends HTMLElement {
 	addReleaseSelect() {
 		let release = document.createElement("input");
 		let releaseReflector = document.createElement("div");
-		let startValue = 0.5;
+		let startValue = 10;
 		release.type = "range";
 		release.min = 0;
 		release.max = "10";
@@ -113,7 +113,22 @@ class SimpleInstrument extends HTMLElement {
 			osc.frequency.value = this.getFrequency(note);
 			console.log(osc);
 			osc.type = this.waveform;
-			osc.connect(this.ctx.destination);
+			let envelope = this.ctx.createGain(); //ADSR envelope
+			//osc.connect(this.ctx.destination);
+			osc.connect(envelope);
+			envelope.connect(this.ctx.destination);
+			let attack = this.attack;
+			let decay = this.decay;
+			let sustain = this.sustain;
+			let release = this.release;
+			console.log(attack);
+			//configure the ADSR envelope
+			envelope.gain.setValueAtTime(0, this.ctx.currentTime);
+			envelope.gain.linearRampToValueAtTime(1, this.ctx.currentTime + attack);
+			envelope.gain.linearRampToValueAtTime(sustain, this.ctx.currentTime + decay);
+			envelope.gain.linearRampToValueAtTime(0, this.ctx.currentTime + release);
+			console.log("envelope: ");
+			console.log(envelope);
 			osc.start();
 		}
 		else {
@@ -133,10 +148,10 @@ class SimpleInstrument extends HTMLElement {
 		//add event listeners to inputs
 		let me = this;
 		this.waveformSelect.addEventListener("change", function() {me.waveform = me.waveformSelect.value;});
-		this.attackSelect.addEventListener("input", function() {me.attackSelectReflector.innerHTML = "attack: "+me.attackSelect.value;});
-		this.decaySelect.addEventListener("input", function() {me.decaySelectReflector.innerHTML = "decay: "+me.decaySelect.value;});
-		this.sustainSelect.addEventListener("input", function() {me.sustainSelectReflector.innerHTML = "sustain: "+me.sustainSelect.value;});
-		this.releaseSelect.addEventListener("input", function() {me.releaseSelectReflector.innerHTML = "release: "+me.releaseSelect.value;});
+		this.attackSelect.addEventListener("input", function() {me.attackSelectReflector.innerHTML = "attack: "+me.attackSelect.value; me.attack = parseFloat(me.attackSelect.value);});
+		this.decaySelect.addEventListener("input", function() {me.decaySelectReflector.innerHTML = "decay: "+me.decaySelect.value; me.decay = parseFloat(me.decaySelect.value);});
+		this.sustainSelect.addEventListener("input", function() {me.sustainSelectReflector.innerHTML = "sustain: "+me.sustainSelect.value; me.sustain = parseFloat(me.sustainSelect.value);});
+		this.releaseSelect.addEventListener("input", function() {me.releaseSelectReflector.innerHTML = "release: "+me.releaseSelect.value; me.release = parseFloat(me.releaseSelect.value);});
 		this.style.position = "absolute";
 		this.style.width = "250";
 		this.style.height = "200";
